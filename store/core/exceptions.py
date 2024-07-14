@@ -2,7 +2,7 @@ from fastapi import HTTPException
 
 
 class BaseException(Exception):
-    message: str = "Internal Server Error"
+    message: str = "Internal Server Error test"
 
     def __init__(self, message: str | None = None) -> None:
         if message:
@@ -15,3 +15,4 @@ class NotFoundException(BaseException):
 class InsertionError(HTTPException):
     def __init__(self, detail: str):
         super().__init__(status_code=400, detail=detail)
+        
