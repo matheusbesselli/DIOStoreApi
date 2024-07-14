@@ -1,5 +1,5 @@
 import datetime
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 import pymongo
@@ -29,8 +29,18 @@ class ProductUsecase:
 
         return ProductOut(**result)
 
-    async def query(self) -> List[ProductOut]:
-        return [ProductOut(**item) async for item in self.collection.find()]
+    async def query(self, min_price: Optional[float] = None, max_price: Optional[float] = None) -> List[ProductOut]:
+        query_filter = {}
+        if min_price is not None:
+            query_filter["price"] = {"$gte": min_price}
+        if max_price is not None:
+            if "price" in query_filter:
+                query_filter["price"]["$lte"] = max_price
+            else:
+                query_filter["price"] = {"$lte": max_price}
+
+        cursor = self.collection.find(query_filter)
+        return [ProductOut(**item) async for item in cursor]
 
     async def update(self, id: UUID, body: ProductUpdate, updated_at: datetime) -> ProductUpdateOut:
         update_fields = body.model_dump(exclude_none=True)

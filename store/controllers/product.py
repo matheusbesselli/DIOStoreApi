@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import List
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
+from typing import List, Optional
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from pydantic import UUID4
 from store.core.exceptions import InsertionError, NotFoundException
 
@@ -22,6 +22,7 @@ async def post(
         raise HTTPException(status_code=500, detail="Erro interno do servidor: " + str(e))
 
 
+
 @router.get(path="/{id}", status_code=status.HTTP_200_OK)
 async def get(
     id: UUID4 = Path(alias="id"), usecase: ProductUsecase = Depends()
@@ -31,11 +32,13 @@ async def get(
     except NotFoundException as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
 
-
 @router.get(path="/", status_code=status.HTTP_200_OK)
-async def query(usecase: ProductUsecase = Depends()) -> List[ProductOut]:
-    return await usecase.query()
-
+async def query(
+    min_price: Optional[float] = Query(None),
+    max_price: Optional[float] = Query(None),
+    usecase: ProductUsecase = Depends()
+) -> List[ProductOut]:
+    return await usecase.query(min_price=min_price, max_price=max_price)
 
 @router.patch(path="/{id}", status_code=status.HTTP_200_OK)
 async def patch(
