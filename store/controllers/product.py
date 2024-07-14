@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from pydantic import UUID4
@@ -43,9 +44,10 @@ async def patch(
     usecase: ProductUsecase = Depends(),
 ) -> ProductUpdateOut:
     try:
-        return await usecase.update(id=id, body=body)
+        updated_at = datetime.now()
+        return await usecase.update(id=id, body=body, updated_at=updated_at)
     except NotFoundException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"O produto com o ID {id} não foi encontrado. Por favor, verifique o ID e tente novamente.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"O produto com o ID {id} não foi encontrado. Por favor, verifique o ID e tente novamente. {exc}")
 
 
 @router.delete(path="/{id}", status_code=status.HTTP_204_NO_CONTENT)

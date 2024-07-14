@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 from uuid import UUID
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
@@ -31,10 +32,13 @@ class ProductUsecase:
     async def query(self) -> List[ProductOut]:
         return [ProductOut(**item) async for item in self.collection.find()]
 
-    async def update(self, id: UUID, body: ProductUpdate) -> ProductUpdateOut:
+    async def update(self, id: UUID, body: ProductUpdate, updated_at: datetime) -> ProductUpdateOut:
+        update_fields = body.model_dump(exclude_none=True)
+        update_fields['updated_at'] = updated_at
+        
         result = await self.collection.find_one_and_update(
             filter={"id": id},
-            update={"$set": body.model_dump(exclude_none=True)},
+            update={"$set": update_fields},  # Use update_fields ao invés de body.model_dump()
             return_document=pymongo.ReturnDocument.AFTER,
         )
 
@@ -42,7 +46,6 @@ class ProductUsecase:
             raise NotFoundException(message=f"Product not found with filter: {id}")
 
         return ProductUpdateOut(**result)
-
     async def delete(self, id: UUID) -> bool:
         product = await self.collection.find_one({"id": id})
         if not product:
