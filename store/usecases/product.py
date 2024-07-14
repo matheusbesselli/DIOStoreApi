@@ -38,7 +38,7 @@ class ProductUsecase:
         
         result = await self.collection.find_one_and_update(
             filter={"id": id},
-            update={"$set": update_fields},  # Use update_fields ao invés de body.model_dump()
+            update={"$set": update_fields},
             return_document=pymongo.ReturnDocument.AFTER,
         )
 
